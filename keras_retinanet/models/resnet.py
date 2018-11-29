@@ -15,70 +15,110 @@ limitations under the License.
 """
 
 import keras
+from keras.utils import get_file
 import keras_resnet
 import keras_resnet.models
-from ..models import retinanet
 
-WEIGHTS_PATH_NO_TOP_50 = 'https://github.com/fizyr/keras-models/releases/download/v0.0.1/ResNet-50-model.keras.h5'
-WEIGHTS_PATH_NO_TOP_101 = 'https://github.com/fizyr/keras-models/releases/download/v0.0.1/ResNet-101-model.keras.h5'
-WEIGHTS_PATH_NO_TOP_152 = 'https://github.com/fizyr/keras-models/releases/download/v0.0.1/ResNet-152-model.keras.h5'
-
-custom_objects = retinanet.custom_objects.copy()
-custom_objects.update(keras_resnet.custom_objects)
+from . import retinanet
+from . import Backbone
+from ..utils.image import preprocess_image
 
 
-def ResNet50RetinaNet(inputs, num_classes, weights='imagenet', *args, **kwargs):
-    image = inputs
+class ResNetBackbone(Backbone):
+    """ Describes backbone information and provides utility functions.
+    """
 
-    # load pretrained imagenet weights?
-    if weights == 'imagenet':
-        weights_path = keras.applications.imagenet_utils.get_file(
-            'ResNet-50-model.keras.h5',
-            WEIGHTS_PATH_NO_TOP_50, cache_subdir='models', md5_hash='3e9f4e4f77bbe2c9bec13b53ee1c2319'
+    def __init__(self, backbone):
+        super(ResNetBackbone, self).__init__(backbone)
+        self.custom_objects.update(keras_resnet.custom_objects)
+
+    def retinanet(self, *args, **kwargs):
+        """ Returns a retinanet model using the correct backbone.
+        """
+        return resnet_retinanet(*args, backbone=self.backbone, **kwargs)
+
+    def download_imagenet(self):
+        """ Downloads ImageNet weights and returns path to weights file.
+        """
+        resnet_filename = 'ResNet-{}-model.keras.h5'
+        resnet_resource = 'https://github.com/fizyr/keras-models/releases/download/v0.0.1/{}'.format(resnet_filename)
+        depth = int(self.backbone.replace('resnet', ''))
+
+        filename = resnet_filename.format(depth)
+        resource = resnet_resource.format(depth)
+        if depth == 50:
+            checksum = '3e9f4e4f77bbe2c9bec13b53ee1c2319'
+        elif depth == 101:
+            checksum = '05dc86924389e5b401a9ea0348a3213c'
+        elif depth == 152:
+            checksum = '6ee11ef2b135592f8031058820bb9e71'
+
+        return get_file(
+            filename,
+            resource,
+            cache_subdir='models',
+            md5_hash=checksum
         )
+
+    def validate(self):
+        """ Checks whether the backbone string is correct.
+        """
+        allowed_backbones = ['resnet50', 'resnet101', 'resnet152']
+        backbone = self.backbone.split('_')[0]
+
+        if backbone not in allowed_backbones:
+            raise ValueError('Backbone (\'{}\') not in allowed backbones ({}).'.format(backbone, allowed_backbones))
+
+    def preprocess_image(self, inputs):
+        """ Takes as input an image and prepares it for being passed through the network.
+        """
+        return preprocess_image(inputs, mode='caffe')
+
+
+def resnet_retinanet(num_classes, backbone='resnet50', inputs=None, modifier=None, **kwargs):
+    """ Constructs a retinanet model using a resnet backbone.
+
+    Args
+        num_classes: Number of classes to predict.
+        backbone: Which backbone to use (one of ('resnet50', 'resnet101', 'resnet152')).
+        inputs: The inputs to the network (defaults to a Tensor of shape (None, None, 3)).
+        modifier: A function handler which can modify the backbone before using it in retinanet (this can be used to freeze backbone layers for example).
+
+    Returns
+        RetinaNet model with a ResNet backbone.
+    """
+    # choose default input
+    if inputs is None:
+        if keras.backend.image_data_format() == 'channels_first':
+            inputs = keras.layers.Input(shape=(3, None, None))
+        else:
+            inputs = keras.layers.Input(shape=(None, None, 3))
+
+    # create the resnet backbone
+    if backbone == 'resnet50':
+        resnet = keras_resnet.models.ResNet50(inputs, include_top=False, freeze_bn=True)
+    elif backbone == 'resnet101':
+        resnet = keras_resnet.models.ResNet101(inputs, include_top=False, freeze_bn=True)
+    elif backbone == 'resnet152':
+        resnet = keras_resnet.models.ResNet152(inputs, include_top=False, freeze_bn=True)
     else:
-        weights_path = weights
+        raise ValueError('Backbone (\'{}\') is invalid.'.format(backbone))
 
-    resnet = keras_resnet.models.ResNet50(image, include_top=False, freeze_bn=True)
+    # invoke modifier if given
+    if modifier:
+        resnet = modifier(resnet)
 
-    model = retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes, backbone=resnet, *args, **kwargs)
-    model.load_weights(weights_path, by_name=True)
-    return model
-
-
-def ResNet101RetinaNet(inputs, num_classes, weights='imagenet', *args, **kwargs):
-    image = inputs
-
-    # load pretrained imagenet weights?
-    if weights == 'imagenet':
-        weights_path = keras.applications.imagenet_utils.get_file(
-            'ResNet-101-model.keras.h5',
-            WEIGHTS_PATH_NO_TOP_101, cache_subdir='models', md5_hash='05dc86924389e5b401a9ea0348a3213c'
-        )
-    else:
-        weights_path = weights
-
-    resnet = keras_resnet.models.ResNet101(image, include_top=False, freeze_bn=True)
-
-    model = retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes, backbone=resnet, *args, **kwargs)
-    model.load_weights(weights_path, by_name=True)
-    return model
+    # create the full model
+    return retinanet.retinanet(inputs=inputs, num_classes=num_classes, backbone_layers=resnet.outputs[1:], **kwargs)
 
 
-def ResNet152RetinaNet(inputs, num_classes, weights='imagenet', *args, **kwargs):
-    image = inputs
+def resnet50_retinanet(num_classes, inputs=None, **kwargs):
+    return resnet_retinanet(num_classes=num_classes, backbone='resnet50', inputs=inputs, **kwargs)
 
-    # load pretrained imagenet weights?
-    if weights == 'imagenet':
-        weights_path = keras.applications.imagenet_utils.get_file(
-            'ResNet-152-model.keras.h5',
-            WEIGHTS_PATH_NO_TOP_152, cache_subdir='models', md5_hash='6ee11ef2b135592f8031058820bb9e71'
-        )
-    else:
-        weights_path = weights
 
-    resnet = keras_resnet.models.ResNet152(image, include_top=False, freeze_bn=True)
+def resnet101_retinanet(num_classes, inputs=None, **kwargs):
+    return resnet_retinanet(num_classes=num_classes, backbone='resnet101', inputs=inputs, **kwargs)
 
-    model = retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes, backbone=resnet, *args, **kwargs)
-    model.load_weights(weights_path, by_name=True)
-    return model
+
+def resnet152_retinanet(num_classes, inputs=None, **kwargs):
+    return resnet_retinanet(num_classes=num_classes, backbone='resnet152', inputs=inputs, **kwargs)
