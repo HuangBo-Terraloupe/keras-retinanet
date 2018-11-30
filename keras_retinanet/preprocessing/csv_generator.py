@@ -180,7 +180,7 @@ class CSVGenerator(Generator):
         print('sampling from training dataset! ...')
         if len(self.negative_samples) > len(self.positive_samples):
             image_names = self.positive_samples + np.random.choice(self.negative_samples, len(self.positive_samples), replace=False).tolist()
-            image_data = {key: self.image_data_total[key] for key in self.image_names}
+            image_data = {key: self.image_data_total[key] for key in image_names}
             return image_data, image_names
         else:
             return self.image_data_total, self.image_names_total
