@@ -157,7 +157,7 @@ class CSVGenerator(Generator):
                 self.image_data_total = _read_annotations(csv.reader(file, delimiter=','), self.classes)
         except ValueError as e:
             raise_from(ValueError('invalid CSV annotations file: {}: {}'.format(csv_data_file, e)), None)
-        self.image_names_total = list(self.image_data.keys())
+        self.image_names_total = list(self.image_data_total.keys())
 
         if self.sampling is True:
             self.positive_samples = []
@@ -172,10 +172,6 @@ class CSVGenerator(Generator):
         else:
             self.image_data = self.image_data_total
             self.image_names = self.image_names_total
-
-
-        import pdb
-        pdb.set_trace()
 
         super(CSVGenerator, self).__init__(**kwargs)
 
