@@ -324,6 +324,3 @@ class Generator(object):
             self.group_index = (self.group_index + 1) % len(self.groups)
 
         return self.compute_input_output(group)
-
-    def on_epoch_end(self):
-        print('hello!!!!')

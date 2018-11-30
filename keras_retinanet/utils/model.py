@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import keras
+from keras.callbacks import Callback
 
 def freeze(model):
     """ Set all layers in a model to non-trainable.
@@ -28,8 +29,15 @@ def freeze(model):
     return model
 
 
-class Re_sampling_trainingData(keras.callbacks.Callback):
+class Re_sampling_trainingData(Callback):
+    def __init__(self, train_generator):
+        self.train_generator = train_generator
+
     def on_epoch_begin(self, epoch, logs=None):
-        print('epoch begin', epoch)
+        self.train_generator.on_epoch_end()
+
     def on_epoch_end(self, epoch, logs=None):
-        print('epoch ends', epoch)
+        self.train_generator.on_epoch_end()
+
+
+    #super(Callback, self).__init__(train_generator)

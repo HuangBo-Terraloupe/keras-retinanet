@@ -134,12 +134,12 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0, freeze_
     return model, training_model, prediction_model
 
 
-def create_callbacks(model, training_model, prediction_model, validation_generator, args):
+def create_callbacks(model, train_generator, prediction_model, validation_generator, args):
     """ Creates the callbacks to use during training.
 
     Args
         model: The base model.
-        training_model: The model that is used for training.
+        train_generator: training generator
         prediction_model: The model that should be used for validation.
         validation_generator: The generator for creating validation data.
         args: parseargs args object.
@@ -205,7 +205,7 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
     ))
 
     # custom callbacks
-    callbacks.append(Re_sampling_trainingData())
+    callbacks.append(Re_sampling_trainingData(train_generator))
     return callbacks
 
 
@@ -478,7 +478,7 @@ def main(args=None):
     # create the callbacks
     callbacks = create_callbacks(
         model,
-        training_model,
+        train_generator,
         prediction_model,
         validation_generator,
         args,
