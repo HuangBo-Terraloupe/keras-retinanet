@@ -191,7 +191,6 @@ class CSVGenerator(Generator):
             self.image_data, self.image_names = self.sampling_training_data()
 
 
-
     def size(self):
         """ Size of the dataset.
         """
