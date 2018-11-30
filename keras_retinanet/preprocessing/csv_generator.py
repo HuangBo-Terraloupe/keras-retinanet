@@ -120,6 +120,7 @@ class CSVGenerator(Generator):
         self,
         csv_data_file,
         csv_class_file,
+        sampling,
         base_dir=None,
         **kwargs
     ):
@@ -132,6 +133,7 @@ class CSVGenerator(Generator):
         """
         self.image_names = []
         self.image_data  = {}
+        self.sampling = sampling
         self.base_dir    = base_dir
 
         # Take base_dir from annotations file if not explicitly specified.
@@ -152,15 +154,42 @@ class CSVGenerator(Generator):
         # csv with img_path, x1, y1, x2, y2, class_name
         try:
             with _open_for_csv(csv_data_file) as file:
-                self.image_data = _read_annotations(csv.reader(file, delimiter=','), self.classes)
+                self.image_data_total = _read_annotations(csv.reader(file, delimiter=','), self.classes)
         except ValueError as e:
             raise_from(ValueError('invalid CSV annotations file: {}: {}'.format(csv_data_file, e)), None)
-        self.image_names = list(self.image_data.keys())
+        self.image_names_total = list(self.image_data.keys())
 
-        import pdb
-        pdb.set_trace()
+        if self.sampling is True:
+            self.positive_samples = []
+            self.negative_samples = []
+            for name in self.image_names_total:
+                if len(self.image_data_total[name]) == 0:
+                    self.negative_samples.append(name)
+                else:
+                    self.positive_samples.append(name)
+
+            self.image_data, self.image_names = self.sampling_training_data()
+        else:
+            self.image_data = self.image_data_total
+            self.image_names = self.image_names_total
 
         super(CSVGenerator, self).__init__(**kwargs)
+
+
+    def sampling_training_data(self):
+        print('sampling from training dataset! ...')
+        if len(self.negative_samples) > len(self.positive_samples):
+            image_names = self.positive_samples + np.random.choice(self.negative_samples, len(self.positive_samples), replace=False)
+            image_data = {key: self.image_data_total[key] for key in self.image_names}
+            return image_data, image_names
+        else:
+            return self.image_data_total, self.image_names_total
+
+
+    def on_epoch_end(self):
+        if self.sampling is True:
+            self.sampling_training_data()
+
 
     def size(self):
         """ Size of the dataset.

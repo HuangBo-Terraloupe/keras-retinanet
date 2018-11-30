@@ -271,6 +271,7 @@ def create_generators(args, preprocess_image):
         train_generator = CSVGenerator(
             args.annotations,
             args.classes,
+            sampling = True,
             transform_generator=transform_generator,
             **common_args
         )
@@ -279,6 +280,7 @@ def create_generators(args, preprocess_image):
             validation_generator = CSVGenerator(
                 args.val_annotations,
                 args.classes,
+                sampling = True,
                 **common_args
             )
         else:
