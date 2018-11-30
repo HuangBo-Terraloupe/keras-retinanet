@@ -168,9 +168,6 @@ class CSVGenerator(Generator):
                 else:
                     self.positive_samples.append(name)
 
-            import pdb
-            pdb.set_trace()
-
             self.image_data, self.image_names = self.sampling_training_data()
         else:
             self.image_data = self.image_data_total
@@ -182,7 +179,7 @@ class CSVGenerator(Generator):
     def sampling_training_data(self):
         print('sampling from training dataset! ...')
         if len(self.negative_samples) > len(self.positive_samples):
-            image_names = self.positive_samples + np.random.choice(self.negative_samples, len(self.positive_samples), replace=False)
+            image_names = self.positive_samples + np.random.choice(self.negative_samples, len(self.positive_samples), replace=False).tolist()
             image_data = {key: self.image_data_total[key] for key in self.image_names}
             return image_data, image_names
         else:
