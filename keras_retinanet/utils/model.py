@@ -32,6 +32,7 @@ def freeze(model):
 class Re_sampling_trainingData(Callback):
     def __init__(self, train_generator):
         self.train_generator = train_generator
+        super(Callback, self).__init__()
 
     def on_epoch_begin(self, epoch, logs=None):
         self.train_generator.on_epoch_end()
@@ -39,5 +40,3 @@ class Re_sampling_trainingData(Callback):
     def on_epoch_end(self, epoch, logs=None):
         self.train_generator.on_epoch_end()
 
-
-    #super(Callback, self).__init__(train_generator)
