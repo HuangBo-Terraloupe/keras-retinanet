@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
+import keras
 
 def freeze(model):
     """ Set all layers in a model to non-trainable.
@@ -26,3 +26,10 @@ def freeze(model):
     for layer in model.layers:
         layer.trainable = False
     return model
+
+
+class Re_sampling_trainingData(keras.callbacks.Callback):
+    def on_epoch_begin(self, epoch, logs=None):
+        print('epoch begin', epoch)
+    def on_epoch_end(self, epoch, logs=None):
+        print('epoch ends', epoch)

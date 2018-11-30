@@ -47,6 +47,7 @@ from ..utils.config import read_config_file, parse_anchor_parameters
 from ..utils.keras_version import check_keras_version
 from ..utils.model import freeze as freeze_model
 from ..utils.transform import random_transform_generator
+from ..utils.model import Re_sampling_trainingData
 
 
 def makedirs(path):
@@ -203,6 +204,8 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
         min_lr     = 0
     ))
 
+    # custom callbacks
+    callbacks.append(Re_sampling_trainingData())
     return callbacks
 
 
