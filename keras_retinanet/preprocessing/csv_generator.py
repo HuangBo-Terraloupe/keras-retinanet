@@ -188,7 +188,8 @@ class CSVGenerator(Generator):
 
     def on_epoch_end(self):
         if self.sampling is True:
-            self.sampling_training_data()
+            self.image_data, self.image_names = self.sampling_training_data()
+
 
 
     def size(self):
