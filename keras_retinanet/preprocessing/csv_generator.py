@@ -173,6 +173,10 @@ class CSVGenerator(Generator):
             self.image_data = self.image_data_total
             self.image_names = self.image_names_total
 
+
+        import pdb
+        pdb.set_trace()
+
         super(CSVGenerator, self).__init__(**kwargs)
 
 
