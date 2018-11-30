@@ -168,6 +168,9 @@ class CSVGenerator(Generator):
                 else:
                     self.positive_samples.append(name)
 
+            import pdb
+            pdb.set_trace()
+
             self.image_data, self.image_names = self.sampling_training_data()
         else:
             self.image_data = self.image_data_total
