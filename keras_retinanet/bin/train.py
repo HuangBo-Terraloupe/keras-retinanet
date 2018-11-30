@@ -280,7 +280,7 @@ def create_generators(args, preprocess_image):
             validation_generator = CSVGenerator(
                 args.val_annotations,
                 args.classes,
-                sampling = True,
+                sampling = False,
                 **common_args
             )
         else:
