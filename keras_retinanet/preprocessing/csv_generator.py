@@ -24,6 +24,7 @@ from six import raise_from
 
 import csv
 import sys
+import yaml
 import os.path
 
 
@@ -70,7 +71,8 @@ def _read_annotations(csv_reader, classes):
         try:
             img_file, x1, y1, x2, y2, class_name = row[:6]
         except ValueError:
-            raise_from(ValueError('line {}: format should be \'img_file,x1,y1,x2,y2,class_name\' or \'img_file,,,,,\''.format(line)), None)
+            raise_from(ValueError('line {}: format should be \'img_file,x1,y1,x2,y2,class_name\' '
+                                  'or \'img_file,,,,,\''.format(line)), None)
 
         if img_file not in result:
             result[img_file] = []
@@ -129,7 +131,8 @@ class CSVGenerator(Generator):
         Args
             csv_data_file: Path to the CSV annotations file.
             csv_class_file: Path to the CSV classes file.
-            base_dir: Directory w.r.t. where the files are to be searched (defaults to the directory containing the csv_data_file).
+            base_dir: Directory w.r.t. where the files are to be searched (defaults to the directory
+            containing the csv_data_file).
         """
         self.image_names = []
         self.image_data  = {}
@@ -159,6 +162,9 @@ class CSVGenerator(Generator):
             raise_from(ValueError('invalid CSV annotations file: {}: {}'.format(csv_data_file, e)), None)
         self.image_names_total = list(self.image_data_total.keys())
 
+        import pdb
+        pdb.set_trace()
+
         if self.sampling is True:
             self.positive_samples = []
             self.negative_samples = []
@@ -179,7 +185,9 @@ class CSVGenerator(Generator):
     def sampling_training_data(self):
         print('sampling from training dataset! ...')
         if len(self.negative_samples) > len(self.positive_samples):
-            image_names = self.positive_samples + np.random.choice(self.negative_samples, len(self.positive_samples), replace=False).tolist()
+            image_names = self.positive_samples + np.random.choice(self.negative_samples,
+                                                                   len(self.positive_samples),
+                                                                   replace=False).tolist()
             image_data = {key: self.image_data_total[key] for key in image_names}
             return image_data, image_names
         else:
