@@ -171,6 +171,9 @@ class CSVGenerator(Generator):
             with open(yaml_file, 'rb') as fp:
                 self.spec = yaml.load(fp.read())
             self.probability = self.spec['training']['probability']
+
+            import pdb
+            pdb.set_trace()
             self.image_names, self.image_data = self.sampling_from_dataset(self.image_names_total, self.image_names_total,
                                                                            self.probability, self.sample_numbers)
 
