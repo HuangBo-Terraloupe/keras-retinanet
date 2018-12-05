@@ -26,6 +26,9 @@ import csv
 import sys
 import os.path
 
+import yaml
+from random import shuffle
+
 
 def _parse(value, function, fmt):
     """
@@ -120,6 +123,8 @@ class CSVGenerator(Generator):
         self,
         csv_data_file,
         csv_class_file,
+        yaml_file,
+        sample_numbers,
         base_dir=None,
         **kwargs
     ):
@@ -133,6 +138,7 @@ class CSVGenerator(Generator):
         self.image_names = []
         self.image_data  = {}
         self.base_dir    = base_dir
+        self.sample_numbers = sample_numbers
 
         # Take base_dir from annotations file if not explicitly specified.
         if self.base_dir is None:
@@ -152,12 +158,39 @@ class CSVGenerator(Generator):
         # csv with img_path, x1, y1, x2, y2, class_name
         try:
             with _open_for_csv(csv_data_file) as file:
-                self.image_data = _read_annotations(csv.reader(file, delimiter=','), self.classes)
+                self.image_data_total = _read_annotations(csv.reader(file, delimiter=','), self.classes)
         except ValueError as e:
             raise_from(ValueError('invalid CSV annotations file: {}: {}'.format(csv_data_file, e)), None)
-        self.image_names = list(self.image_data.keys())
+        self.image_names_total = list(self.image_data.keys())
+
+        if self.sample_numbers is None:
+            self.image_names = self.image_names_total
+            self.image_data = self.image_data_total
+
+        else:
+            with open(yaml_file, 'rb') as fp:
+                self.spec = yaml.load(fp.read())
+            self.probability = self.spec['training']['probability']
+            self.image_names, self.image_data = self.sampling_from_dataset(self.image_names_total, self.image_names_total,
+                                                                           self.probability, self.sample_numbers)
 
         super(CSVGenerator, self).__init__(**kwargs)
+
+
+    def sampling_from_dataset(self, data, data_names, probability, sample_numbers):
+
+        if self.sample_numbers is None:
+            sampled_names = data_names
+            sampled_data = data
+        else:
+            print('re-sampling dataset ...')
+            sampled_indexes = np.random.choice(len(data_names), sample_numbers, replace=False, p=probability)
+            sampled_names = np.array(data)[sampled_indexes].tolist()
+            shuffle(sampled_names)
+            sampled_data = {key: data[key] for key in sample_names}
+
+        return sampled_names, sampled_data
+
 
     def size(self):
         """ Size of the dataset.
