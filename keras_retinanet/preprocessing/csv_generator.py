@@ -161,7 +161,7 @@ class CSVGenerator(Generator):
                 self.image_data_total = _read_annotations(csv.reader(file, delimiter=','), self.classes)
         except ValueError as e:
             raise_from(ValueError('invalid CSV annotations file: {}: {}'.format(csv_data_file, e)), None)
-        self.image_names_total = list(self.image_data.keys())
+        self.image_names_total = list(self.image_data_total.keys())
 
         if self.sample_numbers is None:
             self.image_names = self.image_names_total
@@ -171,9 +171,6 @@ class CSVGenerator(Generator):
             with open(yaml_file, 'rb') as fp:
                 self.spec = yaml.load(fp.read())
             self.probability = self.spec['training']['probability']
-
-            import pdb
-            pdb.set_trace()
             self.image_names, self.image_data = self.sampling_from_dataset(self.image_names_total, self.image_names_total,
                                                                            self.probability, self.sample_numbers)
 
