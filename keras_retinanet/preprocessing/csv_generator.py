@@ -171,7 +171,7 @@ class CSVGenerator(Generator):
             with open(yaml_file, 'rb') as fp:
                 self.spec = yaml.load(fp.read())
             self.probability = self.spec['training']['probability']
-            self.image_names, self.image_data = self.sampling_from_dataset(self.image_names_total, self.image_names_total,
+            self.image_names, self.image_data = self.sampling_from_dataset(self.image_data_total, self.image_names_total,
                                                                            self.probability, self.sample_numbers)
 
         super(CSVGenerator, self).__init__(**kwargs)
@@ -184,6 +184,8 @@ class CSVGenerator(Generator):
             sampled_data = data
         else:
             print('re-sampling dataset ...')
+            import pdb
+            pdb.set_trace()
             sampled_indexes = np.random.choice(len(data_names), sample_numbers, replace=False, p=probability)
             sampled_names = np.array(data)[sampled_indexes].tolist()
             shuffle(sampled_names)
