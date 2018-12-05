@@ -271,7 +271,7 @@ def create_generators(args, preprocess_image):
         train_generator = CSVGenerator(
             args.annotations,
             args.classes,
-            arg.yml-file,
+            args.yml-file,
             args.number-sampling-train,
             transform_generator=transform_generator,
             **common_args
@@ -281,7 +281,7 @@ def create_generators(args, preprocess_image):
             validation_generator = CSVGenerator(
                 args.val_annotations,
                 args.classes,
-                arg.yml-file,
+                args.yml-file,
                 args.number-sampling-validation,
                 **common_args
             )
