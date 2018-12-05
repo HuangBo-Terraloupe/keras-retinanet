@@ -186,7 +186,7 @@ class CSVGenerator(Generator):
             print('re-sampling dataset ...')
             import pdb
             pdb.set_trace()
-            sampled_indexes = np.random.choice(len(data_names), sample_numbers, replace=False, p=probability)
+            sampled_indexes = np.random.choice(len(data_names), sample_numbers, replace=False, p=probability[0:len(data_names)])
             sampled_names = np.array(data)[sampled_indexes].tolist()
             shuffle(sampled_names)
             sampled_data = {key: data[key] for key in sample_names}
